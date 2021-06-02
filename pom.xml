@@ -42,6 +42,7 @@
     <url>https://github.com/apache/bookkeeper</url>
     <tag>branch-4.13</tag>
   </scm>
+
   <issueManagement>
     <system>JIRA</system>
     <url>https://issues.apache.org/jira/browse/BOOKKEEPER</url>
@@ -915,6 +916,10 @@
           <overview>site/_site/overview/index.html</overview>
           <show>package</show>
           <detectJavaApiLink>false</detectJavaApiLink>
+
+            <!-- ADDED FOR JAVAC ERROR-->
+          <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
+
         </configuration>
         <executions>
           <execution>
