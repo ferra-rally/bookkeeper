@@ -31,7 +31,7 @@
     <groovy.version>2.5.8</groovy.version>
   </properties>
 
-  <modules>
+  <!--<modules>
     <module>shaded</module>
     <module>docker-images</module>
     <module>integration-tests-base</module>
@@ -41,7 +41,7 @@
     <module>backward-compat</module>
     <module>integration</module>
     <module>scripts</module>
-  </modules>
+  </modules>-->
   <build>
     <plugins>
       <plugin>
