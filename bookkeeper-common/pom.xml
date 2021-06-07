@@ -103,4 +103,9 @@
       </plugin>
     </plugins>
   </build>
+
+  <!-- ADDED -->
+  <properties>
+  <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
+  </properties>
 </project>

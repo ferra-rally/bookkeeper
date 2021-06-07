@@ -106,6 +106,14 @@
     </developer>
   </developers>
   <properties>
+    <!-- ADDED -->
+    <aggregate.report.dir>tests/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
+    <sonar.moduleKey>${artifactId}</sonar.moduleKey>
+    <sonar.projectKey>ferra-rally_bookkeeper</sonar.projectKey>
+    <sonar.organization>ferra-rally</sonar.organization>
+
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <javac.target>1.8</javac.target>
@@ -842,6 +850,19 @@
             </execution>
           </executions>
         </plugin>
+
+        <!--ADDED-->
+        <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       </plugins>
     </pluginManagement>
     <plugins>

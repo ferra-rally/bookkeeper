@@ -25,4 +25,10 @@
   <artifactId>buildtools</artifactId>
   <name>Apache BookKeeper :: Build Tools</name>
   <version>4.15.0-SNAPSHOT</version>
+
+
+  <properties>
+  <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
+</properties>
+
 </project>
