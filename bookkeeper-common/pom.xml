@@ -75,6 +75,8 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+
   <build>
     <plugins>
       <plugin>
@@ -104,7 +106,7 @@
     </plugins>
   </build>
 
-  <!-- ADDED -->
+  <!-- ADDED  -->
   <properties>
   <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
   </properties>
