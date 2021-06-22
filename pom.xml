@@ -878,7 +878,7 @@
           <excludeFilterFile>${session.executionRootDirectory}/buildtools/src/main/resources/bookkeeper/findbugsExclude.xml</excludeFilterFile>
         </configuration>
       </plugin>
-      <!-- BADUA -->
+      <!-- PITEST -->
       <plugin>
         <groupId>org.pitest</groupId>
         <artifactId>pitest-maven</artifactId>
@@ -909,6 +909,8 @@
         <version>${maven-surefire-plugin.version}</version>
         
         <configuration>
+          <!-- FOR BADUA -->
+
 
           <redirectTestOutputToFile>${redirectTestOutputToFile}</redirectTestOutputToFile>
           <forkCount>${forkCount.variable}</forkCount>
@@ -1058,4 +1060,36 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>ba-dua-coverage</id>
+        <activation>
+            <activeByDefault>false</activeByDefault>
+        </activation>
+        <build>
+            <plugins>
+                <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.0.0-M5</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <argLine>
+                              -javaagent:${project.basedir}/ba-dua/ba-dua-agent-rt-0.4.0-all.jar 
+                              -Xbootclasspath/p:${project.basedir}/ba-dua/ba-dua-agent-rt-0.4.0-all.jar
+                            </argLine>
+
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+    </profile>
+  </profiles>
 </project>
