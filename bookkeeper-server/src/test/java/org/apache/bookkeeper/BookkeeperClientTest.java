@@ -5,23 +5,26 @@ import org.apache.bookkeeper.client.BookKeeper;
 
 import org.apache.bookkeeper.util.ZooKeeperServerUtil;
 import org.apache.zookeeper.*;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.Assert;
+import org.junit.*;
 
 import java.io.IOException;
 
 public class BookkeeperClientTest {
-    private static ZooKeeperServerUtil zooKeeperServerUtil;
-    protected static ZooKeeper zkc;
+    private ZooKeeperServerUtil zooKeeperServerUtil;
+    protected ZooKeeper zkc;
 
     public BookkeeperClientTest() {
     }
 
-    @BeforeClass
-    public static void configure() throws IOException, InterruptedException, KeeperException {
+    @Before
+    public void configure() throws IOException, InterruptedException, KeeperException {
         //Start zookkeeper service
         zooKeeperServerUtil = new ZooKeeperServerUtil(21810);
+    }
+
+    @After
+    public void cleanup() {
+        zooKeeperServerUtil.stop();
     }
 
     @Test
