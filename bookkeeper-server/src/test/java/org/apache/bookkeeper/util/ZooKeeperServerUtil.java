@@ -4,6 +4,8 @@ import org.apache.bookkeeper.zookeeper.ZooKeeperClient;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.server.NIOServerCnxnFactory;
 import org.apache.zookeeper.server.ZooKeeperServer;
+import org.apache.zookeeper.server.ZooKeeperServerMain;
+import org.apache.zookeeper.test.QuorumUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +22,7 @@ public class ZooKeeperServerUtil {
 
     private ZooKeeperServer zooKeeperServer;
     private ZooKeeper zooKeeperClient;
+    private NIOServerCnxnFactory serverFactory;
 
     public ZooKeeperServerUtil(int port) throws IOException, InterruptedException, KeeperException {
         //Create temporary zookeeper directory
@@ -29,9 +32,10 @@ public class ZooKeeperServerUtil {
         InetSocketAddress zkaddr = new InetSocketAddress(loopback, port);
         address = loopback + ":" + port;
 
-        NIOServerCnxnFactory serverFactory = new NIOServerCnxnFactory();
+        serverFactory = new NIOServerCnxnFactory();
 
         zooKeeperServer = new ZooKeeperServer(temp, temp, ZooKeeperServer.DEFAULT_TICK_TIME);
+
         serverFactory.configure(zkaddr, 1000);
         serverFactory.startup(zooKeeperServer);
 
@@ -53,4 +57,8 @@ public class ZooKeeperServerUtil {
     public String getZooKeeperAddress() { return address;}
 
     public ZooKeeperServer getZooKeeperServer() { return zooKeeperServer;}
+
+    public void stop() {
+        serverFactory.shutdown();
+    }
 }
