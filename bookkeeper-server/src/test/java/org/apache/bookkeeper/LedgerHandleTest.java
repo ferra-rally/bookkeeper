@@ -8,6 +8,7 @@ import org.apache.bookkeeper.client.LedgerHandle;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.replication.ReplicationException;
 import org.apache.bookkeeper.tls.SecurityException;
+import org.apache.bookkeeper.util.BookieServerUtil;
 import org.apache.bookkeeper.util.ZooKeeperServerUtil;
 import org.apache.zookeeper.KeeperException;
 import org.junit.After;
@@ -18,6 +19,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -27,17 +30,20 @@ public class LedgerHandleTest {
     private BookKeeper bookKeeper;
     private LedgerHandle ledgerHandle;
     private byte[] data;
+    private BookKeeper.DigestType digestType;
 
     @Parameterized.Parameters
     public static Collection<Object[]> getTestParameters() {
         return Arrays.asList(new Object[][]{
-                {"Test0".getBytes()},
-                {"Test1".getBytes()}
+                {"Test0".getBytes(), BookKeeper.DigestType.MAC},
+                {"Test0".getBytes(), BookKeeper.DigestType.CRC32},
+                {convertIntToArray(1), BookKeeper.DigestType.CRC32}
         });
     }
 
-    public LedgerHandleTest(byte[] data) {
+    public LedgerHandleTest(byte[] data, BookKeeper.DigestType digestType) {
         this.data = data;
+        this.digestType = digestType;
     }
 
     @Before
@@ -50,7 +56,7 @@ public class LedgerHandleTest {
         config.setAddEntryTimeout(5000);
         bookKeeper = new BookKeeper(config, zooKeeperServerUtil.getZooKeeperClient());
 
-        ledgerHandle = bookKeeper.createLedger(BookKeeper.DigestType.MAC, "A".getBytes());
+        ledgerHandle = bookKeeper.createLedger(digestType, "A".getBytes());
     }
 
     @After
@@ -59,12 +65,24 @@ public class LedgerHandleTest {
     }
 
     @Test
-    public void addEntryTest() throws BKException, InterruptedException {
-        ledgerHandle.addEntry(data);
+    public void addSingleEntryTest() throws BKException, InterruptedException {
+        ByteBuffer entry = ByteBuffer.allocate(data.length);
+        entry.put(data);
 
-        LedgerEntry entry = ledgerHandle.readLastEntry();
-        byte[] fetched = entry.getEntry();
+        ledgerHandle.addEntry(entry.array());
 
-        Assert.assertArrayEquals(fetched, data);
+        LedgerEntry fetchedEntry = ledgerHandle.readLastEntry();
+
+        ByteBuffer result = ByteBuffer.wrap(fetchedEntry.getEntry());
+        byte[] fetched = result.array();
+
+        Assert.assertArrayEquals(data, fetched);
+    }
+
+    private static byte[] convertIntToArray(int i) {
+        ByteBuffer b = ByteBuffer.allocate(4);
+        b.putInt(i);
+
+        return b.array();
     }
 }
