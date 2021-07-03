@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -31,7 +32,11 @@ public class LedgerHandleTest {
     private int offset;
     private int firstEntry;
     private int lastEntry;
+    private int ensSize;
+    private int wQuorum;
+    private int rQuorum;
     private BookKeeper.DigestType digestType;
+    private BookieServerUtil bookieServerUtil;
 
     /* Digests
     CRC32
@@ -42,33 +47,37 @@ public class LedgerHandleTest {
     @Parameterized.Parameters
     public static Collection<Object[]> getTestParameters() {
         return Arrays.asList(new Object[][]{
-                {"Test0".getBytes(), BookKeeper.DigestType.MAC, 1, 1, 1},
+                {"Test0".getBytes(), BookKeeper.DigestType.MAC, 1, 1, 1, 3, 2, 2}
+                /*
                 {"Test0".getBytes(), BookKeeper.DigestType.CRC32, 2, 1, 2},
                 {convertIntToArray(1), BookKeeper.DigestType.CRC32, 3, 1, 1},
                 {convertIntToArray(1), BookKeeper.DigestType.CRC32C, 3, 3, 1},
-                {convertIntToArray(1), BookKeeper.DigestType.DUMMY, 3, 1, 1}
+                {convertIntToArray(1), BookKeeper.DigestType.DUMMY, 3, 1, 1}*/
         });
     }
 
-    public LedgerHandleTest(byte[] data, BookKeeper.DigestType digestTypeParam, int offset, int firstEntry, int lastEntry) {
+    public LedgerHandleTest(byte[] data, BookKeeper.DigestType digestTypeParam, int offset, int firstEntry, int lastEntry, int ensSize, int wQuorum, int rQuorum) {
         this.data = data;
         this.digestType = digestTypeParam;
         this.offset = offset;
         this.firstEntry = firstEntry;
         this.lastEntry = lastEntry;
+        this.ensSize = ensSize;
+        this.wQuorum = wQuorum;
+        this.rQuorum = rQuorum;
     }
 
     @Before
     public void config() throws IOException, InterruptedException, KeeperException, BKException, ReplicationException.CompatibilityException, ReplicationException.UnavailableException, SecurityException, BookieException {
         zooKeeperServerUtil = new ZooKeeperServerUtil(21810);
 
-        BookieServerUtil bookieServerUtil = new BookieServerUtil();
-        bookieServerUtil.startBookies(3, zooKeeperServerUtil.getZooKeeperAddress());
+        bookieServerUtil = new BookieServerUtil(zooKeeperServerUtil);
+        bookieServerUtil.startBookies(ensSize);
         ClientConfiguration config = new ClientConfiguration();
         config.setAddEntryTimeout(5000);
         bookKeeper = new BookKeeper(config, zooKeeperServerUtil.getZooKeeperClient());
 
-        ledgerHandle = bookKeeper.createLedger(digestType, "A".getBytes());
+        ledgerHandle = bookKeeper.createLedger(ensSize,wQuorum, rQuorum, digestType, "A".getBytes(), Collections.emptyMap());
     }
 
     @After
@@ -136,6 +145,18 @@ public class LedgerHandleTest {
         Enumeration<LedgerEntry> entryEnumeration = readCallback.getEntryEnumeration();
 
         Assert.assertNotNull(entryEnumeration);
+    }
+
+    @Test
+    public void addSingleEntryStopBookiesTest() throws BKException, InterruptedException {
+        ledgerHandle.addEntry(data);
+
+        //TODO edit
+        bookieServerUtil.stopBookies(2);
+        LedgerEntry fetchedEntry = ledgerHandle.readLastEntry();
+        byte[] fetched = fetchedEntry.getEntry();
+
+        Assert.assertArrayEquals(data, fetched);
     }
 
     private static byte[] convertIntToArray(int i) {

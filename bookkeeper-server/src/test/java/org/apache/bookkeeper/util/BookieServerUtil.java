@@ -14,19 +14,28 @@ import org.apache.zookeeper.KeeperException;
 import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static org.apache.bookkeeper.util.IOUtils.createTempDir;
 
 public class BookieServerUtil {
     private final ServerConfiguration baseConf = TestBKConfiguration.newServerConfiguration();
+    private ZooKeeperServerUtil zooKeeperServerUtil;
+    private List<BookieServer> bookies = new ArrayList<>();
 
-    public void startBookies(int num, String zkaddr) {
+    public BookieServerUtil(ZooKeeperServerUtil zooKeeperServerUtil) {
+        this.zooKeeperServerUtil = zooKeeperServerUtil;
+        System.out.println(zooKeeperServerUtil.getZooKeeperAddress());
+    }
+
+    public void startBookies(int num) {
         //Create temp directory for bookie
         //File f = createTempDir("bookie", "test");
         //System.out.println("A" + zkaddr + "A");
         //baseConf.setMetadataServiceUri(zkaddr);
-        baseConf.setMetadataServiceUri("zk://127.0.0.1:21810/ledgers");
+        baseConf.setMetadataServiceUri("zk://127.0.0.1:" + 21810 + "/ledgers");
 
         for(int i = 0; i < num; i++) {
             ServerConfiguration conf = new ServerConfiguration(baseConf);
@@ -44,8 +53,8 @@ public class BookieServerUtil {
                 //int port = 0;
                 conf.setBookiePort(port);
 
-
                 BookieServer server = new BookieServer(conf);
+                bookies.add(server);
                 //BookieId address = Bookie.getBookieId(conf);
 
                 server.start();
@@ -67,6 +76,18 @@ public class BookieServerUtil {
             } catch (BookieException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void stopBookies(int num) {
+        int x;
+        if(bookies.size() < num) {
+            x = bookies.size();
+        } else {
+            x = num;
+        }
+        for(int i = 0; i < x; i++) {
+            bookies.get(i).shutdown();
         }
     }
 }
