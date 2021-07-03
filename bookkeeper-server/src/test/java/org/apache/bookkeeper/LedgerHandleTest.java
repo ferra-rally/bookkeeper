@@ -35,6 +35,7 @@ public class LedgerHandleTest {
     private int ensSize;
     private int wQuorum;
     private int rQuorum;
+    private int stopBookies;
     private BookKeeper.DigestType digestType;
     private BookieServerUtil bookieServerUtil;
 
@@ -47,7 +48,7 @@ public class LedgerHandleTest {
     @Parameterized.Parameters
     public static Collection<Object[]> getTestParameters() {
         return Arrays.asList(new Object[][]{
-                {"Test0".getBytes(), BookKeeper.DigestType.MAC, 1, 1, 1, 3, 2, 2}
+                {"Test0".getBytes(), BookKeeper.DigestType.MAC, 1, 1, 1, 3, 2, 2, 1}
                 /*
                 {"Test0".getBytes(), BookKeeper.DigestType.CRC32, 2, 1, 2},
                 {convertIntToArray(1), BookKeeper.DigestType.CRC32, 3, 1, 1},
@@ -56,7 +57,7 @@ public class LedgerHandleTest {
         });
     }
 
-    public LedgerHandleTest(byte[] data, BookKeeper.DigestType digestTypeParam, int offset, int firstEntry, int lastEntry, int ensSize, int wQuorum, int rQuorum) {
+    public LedgerHandleTest(byte[] data, BookKeeper.DigestType digestTypeParam, int offset, int firstEntry, int lastEntry, int ensSize, int wQuorum, int rQuorum, int stopBookies) {
         this.data = data;
         this.digestType = digestTypeParam;
         this.offset = offset;
@@ -65,6 +66,7 @@ public class LedgerHandleTest {
         this.ensSize = ensSize;
         this.wQuorum = wQuorum;
         this.rQuorum = rQuorum;
+        this.stopBookies = stopBookies;
     }
 
     @Before
@@ -135,14 +137,16 @@ public class LedgerHandleTest {
     }
 
     @Test
-    public void asyncReadEntriesTest() throws ExecutionException, InterruptedException {
+    public void asyncReadEntriesTest() throws ExecutionException, InterruptedException, org.apache.bookkeeper.client.api.BKException {
+        ledgerHandle.append(data);
 
         final FutureTask<Object> ft = new FutureTask<Object>(() -> {}, new Object());
         ReadCallback readCallback = new ReadCallback(ft);
-        ledgerHandle.asyncReadEntries(1, 1, readCallback, this);
+        ledgerHandle.asyncReadEntries(0, 0, readCallback, this);
 
         ft.get();
         Enumeration<LedgerEntry> entryEnumeration = readCallback.getEntryEnumeration();
+        System.out.println(readCallback.getRc());
 
         Assert.assertNotNull(entryEnumeration);
     }
@@ -152,7 +156,8 @@ public class LedgerHandleTest {
         ledgerHandle.addEntry(data);
 
         //TODO edit
-        bookieServerUtil.stopBookies(2);
+        bookieServerUtil.stopBookies(stopBookies);
+
         LedgerEntry fetchedEntry = ledgerHandle.readLastEntry();
         byte[] fetched = fetchedEntry.getEntry();
 
