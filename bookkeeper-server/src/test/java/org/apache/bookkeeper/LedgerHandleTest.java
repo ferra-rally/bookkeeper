@@ -29,7 +29,6 @@ public class LedgerHandleTest {
     private BookKeeper bookKeeper;
     private LedgerHandle ledgerHandle;
     private byte[] data;
-    private int offset;
     private int firstEntry;
     private int lastEntry;
     private int ensSize;
@@ -48,19 +47,13 @@ public class LedgerHandleTest {
     @Parameterized.Parameters
     public static Collection<Object[]> getTestParameters() {
         return Arrays.asList(new Object[][]{
-                {"Test0".getBytes(), BookKeeper.DigestType.MAC, 1, 1, 1, 3, 2, 2, 1}
-                /*
-                {"Test0".getBytes(), BookKeeper.DigestType.CRC32, 2, 1, 2},
-                {convertIntToArray(1), BookKeeper.DigestType.CRC32, 3, 1, 1},
-                {convertIntToArray(1), BookKeeper.DigestType.CRC32C, 3, 3, 1},
-                {convertIntToArray(1), BookKeeper.DigestType.DUMMY, 3, 1, 1}*/
+                {"Test0".getBytes(), BookKeeper.DigestType.MAC, 1, 1, 3, 2, 2, 1}
         });
     }
 
-    public LedgerHandleTest(byte[] data, BookKeeper.DigestType digestTypeParam, int offset, int firstEntry, int lastEntry, int ensSize, int wQuorum, int rQuorum, int stopBookies) {
+    public LedgerHandleTest(byte[] data, BookKeeper.DigestType digestTypeParam, int firstEntry, int lastEntry, int ensSize, int wQuorum, int rQuorum, int stopBookies) {
         this.data = data;
         this.digestType = digestTypeParam;
-        this.offset = offset;
         this.firstEntry = firstEntry;
         this.lastEntry = lastEntry;
         this.ensSize = ensSize;
@@ -70,7 +63,7 @@ public class LedgerHandleTest {
     }
 
     @Before
-    public void config() throws IOException, InterruptedException, KeeperException, BKException, ReplicationException.CompatibilityException, ReplicationException.UnavailableException, SecurityException, BookieException {
+    public void config() throws IOException, InterruptedException, KeeperException, BKException {
         zooKeeperServerUtil = new ZooKeeperServerUtil(21810);
 
         bookieServerUtil = new BookieServerUtil(zooKeeperServerUtil);
@@ -97,20 +90,6 @@ public class LedgerHandleTest {
         Assert.assertArrayEquals(data, fetched);
     }
 
-    /*
-    @Test
-    public void addSingleEntryWithOffsetTest() throws BKException, InterruptedException {
-        for(int i = 0; i < offset; i++) {
-            ledgerHandle.addEntry("Test".getBytes());
-        }
-        ledgerHandle.addEntry(data,1, data.length);
-
-        LedgerEntry fetchedEntry = ledgerHandle.readLastEntry();
-        byte[] fetched = fetchedEntry.getEntry();
-
-        Assert.assertArrayEquals(data, fetched);
-    }*/
-
     @Test
     public void appendTest() throws org.apache.bookkeeper.client.api.BKException, InterruptedException {
         ledgerHandle.append(data);
@@ -134,21 +113,6 @@ public class LedgerHandleTest {
         byte[] fetched = fetchedEntry.getEntry();
 
         Assert.assertArrayEquals(data, fetched);
-    }
-
-    @Test
-    public void asyncReadEntriesTest() throws ExecutionException, InterruptedException, org.apache.bookkeeper.client.api.BKException {
-        ledgerHandle.append(data);
-
-        final FutureTask<Object> ft = new FutureTask<Object>(() -> {}, new Object());
-        ReadCallback readCallback = new ReadCallback(ft);
-        ledgerHandle.asyncReadEntries(0, 0, readCallback, this);
-
-        ft.get();
-        Enumeration<LedgerEntry> entryEnumeration = readCallback.getEntryEnumeration();
-        System.out.println(readCallback.getRc());
-
-        Assert.assertNotNull(entryEnumeration);
     }
 
     @Test
