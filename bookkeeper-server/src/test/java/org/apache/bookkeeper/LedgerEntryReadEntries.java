@@ -37,16 +37,19 @@ public class LedgerEntryReadEntries {
     private int wQuorum;
     private int rQuorum;
     private BookKeeper.DigestType digestType;
+    private int stopBookies;
     private BookieServerUtil bookieServerUtil;
 
     @Parameterized.Parameters
     public static Collection<Object[]> getTestParameters() {
         return Arrays.asList(new Object[][]{
-                {"Test0".getBytes(), BookKeeper.DigestType.MAC, 16, 30, 2, 2, 1}
+                {"Test0".getBytes(), BookKeeper.DigestType.MAC, 10, 20, 3, 3, 1, 1},
+                {"Test0".getBytes(), BookKeeper.DigestType.MAC, 20, 10, 3, 3, 3, 1},
+                {"Test0".getBytes(), BookKeeper.DigestType.MAC, 1, 10, 6, 6, 3, 2}
         });
     }
 
-    public LedgerEntryReadEntries(byte[] data, BookKeeper.DigestType digestTypeParam, int firstEntry, int lastEntry, int ensSize, int wQuorum, int rQuorum) {
+    public LedgerEntryReadEntries(byte[] data, BookKeeper.DigestType digestTypeParam, int firstEntry, int lastEntry, int ensSize, int wQuorum, int rQuorum, int stopBookies) {
         this.data = data;
         this.digestType = digestTypeParam;
         this.firstEntry = firstEntry;
@@ -54,10 +57,11 @@ public class LedgerEntryReadEntries {
         this.ensSize = ensSize;
         this.wQuorum = wQuorum;
         this.rQuorum = rQuorum;
+        this.stopBookies = stopBookies;
     }
 
     @Before
-    public void configigure() throws IOException, InterruptedException, KeeperException, BKException {
+    public void configure() throws IOException, InterruptedException, KeeperException, BKException {
         zooKeeperServerUtil = new ZooKeeperServerUtil(21810);
 
         bookieServerUtil = new BookieServerUtil(zooKeeperServerUtil);
@@ -74,6 +78,7 @@ public class LedgerEntryReadEntries {
             } else {
                 ledgerHandle.addEntry(("test" + i).getBytes());
             }
+            System.out.println("AAAAAA: " + new String(ledgerHandle.readLastEntry().getEntry()));
         }
     }
 
@@ -83,11 +88,17 @@ public class LedgerEntryReadEntries {
     }
 
     @Test
-    public void readEntryWithOffset() throws BKException, InterruptedException {
-        Enumeration<LedgerEntry> fetchedEntries = ledgerHandle.readEntries(firstEntry, lastEntry);
-        while(fetchedEntries.hasMoreElements()) {
-            byte[] bytes = fetchedEntries.nextElement().getEntry();
-            Assert.assertArrayEquals(data, bytes);
+    public void readEntryWithOffset() throws InterruptedException {
+        try {
+            Enumeration<LedgerEntry> fetchedEntries = ledgerHandle.readEntries(firstEntry, lastEntry);
+            while (fetchedEntries.hasMoreElements()) {
+                byte[] bytes = fetchedEntries.nextElement().getEntry();
+                Assert.assertArrayEquals(data, bytes);
+            }
+        } catch (BKException e) {
+            if(lastEntry < firstEntry) {
+                Assert.assertTrue(true);
+            } else Assert.fail();
         }
     }
 
@@ -99,9 +110,28 @@ public class LedgerEntryReadEntries {
 
         ft.get();
         Enumeration<LedgerEntry> entryEnumeration = readCallback.getEntryEnumeration();
-        while(entryEnumeration.hasMoreElements()) {
-            byte[] bytes = entryEnumeration.nextElement().getEntry();
-            Assert.assertArrayEquals(data, bytes);
+
+        if(entryEnumeration == null) {
+            if(lastEntry < firstEntry) {
+                Assert.assertTrue(true);
+            } else Assert.fail();
+        } else {
+            while (entryEnumeration.hasMoreElements()) {
+                byte[] bytes = entryEnumeration.nextElement().getEntry();
+                Assert.assertArrayEquals(data, bytes);
+            }
         }
+    }
+
+    @Test
+    public void addSingleEntryStopBookiesTest() throws BKException, InterruptedException {
+        ledgerHandle.addEntry(data);
+
+        bookieServerUtil.stopBookies(stopBookies);
+
+        LedgerEntry fetchedEntry = ledgerHandle.readLastEntry();
+        byte[] fetched = fetchedEntry.getEntry();
+
+        Assert.assertArrayEquals(data, fetched);
     }
 }

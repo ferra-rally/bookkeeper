@@ -42,10 +42,10 @@ public class LedgerHandleTest {
     @Parameterized.Parameters
     public static Collection<Object[]> getTestParameters() {
         return Arrays.asList(new Object[][]{
-                {"Test0".getBytes(), BookKeeper.DigestType.CRC32, 3, 3, 3, 0},
-                {"".getBytes(), BookKeeper.DigestType.CRC32, 3, 2, 1, 1},
+                {"".getBytes(), BookKeeper.DigestType.CRC32, 3, 3, 3, 0},
+                {"test".getBytes(), BookKeeper.DigestType.CRC32, 4, 2, 1, 1},
                 {"test".getBytes(), BookKeeper.DigestType.DUMMY, 6, 3, 2, 1},
-                {new byte[] {0x00, 0x08}, BookKeeper.DigestType.MAC, 6, 3, 3, 3},
+                {new byte[] {0x00, 0x08}, BookKeeper.DigestType.MAC, 6, 3, 3, 2},
         });
     }
 
