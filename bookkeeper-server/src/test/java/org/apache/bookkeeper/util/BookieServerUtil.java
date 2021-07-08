@@ -86,8 +86,23 @@ public class BookieServerUtil {
         } else {
             x = num;
         }
+
         for(int i = 0; i < x; i++) {
+            System.out.println("NUMBER OF BOOKIES: " + bookies.size());
+            System.out.println("SHUTTING DOWN BOOKIE: " + i);
             bookies.get(i).shutdown();
+            System.out.println("ALIVE BOOKIES: " + numberOfAliveBookies());
         }
+    }
+
+    public int numberOfAliveBookies() {
+        int x = 0;
+        for(int i = 0; i < bookies.size(); i++) {
+            if(bookies.get(i).isRunning()) {
+                x++;
+            }
+        }
+
+        return x;
     }
 }

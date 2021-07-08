@@ -6,6 +6,7 @@ import org.apache.bookkeeper.client.LedgerEntry;
 import org.apache.bookkeeper.client.LedgerHandle;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.util.BookieServerUtil;
+import org.apache.bookkeeper.util.PortManager;
 import org.apache.bookkeeper.util.ReadCallback;
 import org.apache.bookkeeper.util.ZooKeeperServerUtil;
 import org.apache.zookeeper.KeeperException;
@@ -56,7 +57,7 @@ public class LedgerEntryReadEntries {
     }
 
     @Before
-    public void config() throws IOException, InterruptedException, KeeperException, BKException {
+    public void configigure() throws IOException, InterruptedException, KeeperException, BKException {
         zooKeeperServerUtil = new ZooKeeperServerUtil(21810);
 
         bookieServerUtil = new BookieServerUtil(zooKeeperServerUtil);
@@ -71,7 +72,7 @@ public class LedgerEntryReadEntries {
             if((i >= firstEntry) && (i <= lastEntry)) {
                 ledgerHandle.addEntry(data);
             } else {
-                ledgerHandle.addEntry(("grr" + i).getBytes());
+                ledgerHandle.addEntry(("test" + i).getBytes());
             }
         }
     }

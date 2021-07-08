@@ -61,4 +61,8 @@ public class ZooKeeperServerUtil {
     public void stop() {
         serverFactory.shutdown();
     }
+
+    public int getPort() {
+        return port;
+    }
 }
