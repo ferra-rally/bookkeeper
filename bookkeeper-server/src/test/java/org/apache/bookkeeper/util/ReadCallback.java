@@ -19,7 +19,6 @@ public class ReadCallback implements AsyncCallback.ReadCallback {
 
     @Override
     public void readComplete(int rc, LedgerHandle lh, Enumeration<LedgerEntry> seq, Object ctx) {
-        System.out.println("SEQQQQQQQQQQQQQQQQQ: " + seq);
         entryEnumeration = seq;
         this.rc = rc;
         ft.run();

@@ -12,8 +12,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
-import static org.apache.bookkeeper.util.BookKeeperConstants.AVAILABLE_NODE;
-import static org.apache.bookkeeper.util.BookKeeperConstants.READONLY;
+import static org.apache.bookkeeper.util.BookKeeperConstants.*;
 
 public class ZooKeeperServerUtil {
     private String loopback;
@@ -49,6 +48,8 @@ public class ZooKeeperServerUtil {
         txn.create("/ledgers" + "/" + AVAILABLE_NODE, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
         txn.create("/ledgers" + "/" + AVAILABLE_NODE + "/" + READONLY, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT);
+        txn.create("/ledgers/" + UNDER_REPLICATION_NODE, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        txn.create("/ledgers/" + UNDER_REPLICATION_NODE + "/auditorelection", new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
         txn.commit();
     }
 

@@ -24,6 +24,8 @@ public class BookieServerUtil {
     private final ServerConfiguration baseConf = TestBKConfiguration.newServerConfiguration();
     private ZooKeeperServerUtil zooKeeperServerUtil;
     private List<BookieServer> bookies = new ArrayList<>();
+    private List<File> journalDirArray = new ArrayList<>();
+    private List<File> ledgerDirArray = new ArrayList<>();
 
     public BookieServerUtil(ZooKeeperServerUtil zooKeeperServerUtil) {
         this.zooKeeperServerUtil = zooKeeperServerUtil;
@@ -40,12 +42,16 @@ public class BookieServerUtil {
         for(int i = 0; i < num; i++) {
             ServerConfiguration conf = new ServerConfiguration(baseConf);
             //conf.setBookieId(UUID.randomUUID().toString());
-            conf.setUseHostNameAsBookieID(true);
+            //conf.setUseHostNameAsBookieID(true);
+            conf.setBookieId("BOOKIE" + i);
 
             try {
 
                 File journalDir = createTempDir("bookie", "journal" + i);
                 File ledgerDirNames = createTempDir("bookie", "ledger" + i);
+                journalDirArray.add(journalDir);
+                ledgerDirArray.add(ledgerDirNames);
+
                 conf.setJournalDirName(journalDir.getPath());
 
                 conf.setLedgerDirNames(new String[]{ledgerDirNames.getPath()});
@@ -104,5 +110,25 @@ public class BookieServerUtil {
         }
 
         return x;
+    }
+
+    public BookieServer getBookie(int i) {
+        if(i < bookies.size()) {
+            return bookies.get(i);
+        }
+
+        return null;
+    }
+
+    public int getBookieNumer() {
+        return bookies.size();
+    }
+
+    public List<File> getJournalDirArray() {
+        return journalDirArray;
+    }
+
+    public List<File> getLedgerDirArray() {
+        return ledgerDirArray;
     }
 }

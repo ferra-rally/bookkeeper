@@ -76,9 +76,8 @@ public class LedgerEntryReadEntries {
             if((i >= firstEntry) && (i <= lastEntry)) {
                 ledgerHandle.addEntry(data);
             } else {
-                ledgerHandle.addEntry(("test" + i).getBytes());
+                ledgerHandle.addEntry(("filler-" + i).getBytes());
             }
-            System.out.println("AAAAAA: " + new String(ledgerHandle.readLastEntry().getEntry()));
         }
     }
 
