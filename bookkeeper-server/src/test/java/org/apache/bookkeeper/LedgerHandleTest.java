@@ -105,15 +105,13 @@ public class LedgerHandleTest {
     @Test
     public void addSingleEntryStopBookiesTest() throws BKException, InterruptedException {
         bookieServerUtil.stopBookies(stopBookies);
+        LedgerEntry fetchedEntry = null;
         try {
             ledgerHandle.addEntry(data);
 
-            LedgerEntry fetchedEntry = ledgerHandle.readLastEntry();
-            byte[] fetched = fetchedEntry.getEntry();
-
-            Assert.assertArrayEquals(data, fetched);
+            fetchedEntry = ledgerHandle.readLastEntry();
         } catch (Exception e) {
-
+            e.printStackTrace();
             if(bookieServerUtil.numberOfAliveBookies() < wQuorum) {
                 Assert.assertTrue(true);
             } else {
@@ -121,12 +119,8 @@ public class LedgerHandleTest {
             }
         }
 
-    }
+        byte[] fetched = fetchedEntry.getEntry();
 
-    private static byte[] convertIntToArray(int i) {
-        ByteBuffer b = ByteBuffer.allocate(4);
-        b.putInt(i);
-
-        return b.array();
+        Assert.assertArrayEquals(data, fetched);
     }
 }
