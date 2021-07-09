@@ -1,0 +1,4 @@
+4
+bookieHost: "BOOKIE"
+journalDir: "jornalpath"
+ledgerDirs: "1\tledger path"

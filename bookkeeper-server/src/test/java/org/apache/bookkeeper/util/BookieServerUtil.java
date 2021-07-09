@@ -34,15 +34,10 @@ public class BookieServerUtil {
 
     public void startBookies(int num) {
         //Create temp directory for bookie
-        //File f = createTempDir("bookie", "test");
-        //System.out.println("A" + zkaddr + "A");
-        //baseConf.setMetadataServiceUri(zkaddr);
         baseConf.setMetadataServiceUri("zk://127.0.0.1:" + 21810 + "/ledgers");
 
         for(int i = 0; i < num; i++) {
             ServerConfiguration conf = new ServerConfiguration(baseConf);
-            //conf.setBookieId(UUID.randomUUID().toString());
-            //conf.setUseHostNameAsBookieID(true);
             conf.setBookieId("BOOKIE" + i);
 
             try {

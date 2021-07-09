@@ -3,6 +3,7 @@ package org.apache.bookkeeper;
 import org.apache.bookkeeper.client.*;
 import org.apache.bookkeeper.conf.ClientConfiguration;
 import org.apache.bookkeeper.conf.ServerConfiguration;
+import org.apache.bookkeeper.meta.LedgerManager;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.proto.BookieServer;
 import org.apache.bookkeeper.replication.ReplicationException;
@@ -73,25 +74,8 @@ public class BookkeeperAdminTest {
     }
 
     @Test
-    public void readEntriesTest() throws IOException, org.apache.bookkeeper.client.api.BKException, InterruptedException {
-        /*BookieServer bookie = bookieServerUtil.getBookie(numOfBookies - 1);
-        bookie.shutdown();
-        admin.decommissionBookie(bookie.getBookieId());
+    public void test() {
 
-
-        System.out.println(admin.getConf());*/
-        Iterator<Long> iterator = admin.listLedgers().iterator();
-        while (iterator.hasNext()) {
-            System.out.println("LEDGER ID:" + iterator.next());
-        }
-
-        /*
-        ledgerHandle.append("AAAA".getBytes());
-        ledgerHandle.append("AAAA".getBytes());
-        ledgerHandle.append("AAAA".getBytes());
-
-        Iterable<LedgerEntry> entries = admin.readEntries(ledgerHandle.getId(), 0, 1);
-        entries.iterator().next().getEntry();*/
     }
 
     @Test
@@ -102,7 +86,15 @@ public class BookkeeperAdminTest {
             if (BookKeeperAdmin.areEntriesOfLedgerStoredInTheBookie(ledgerHandle.getId(), bookieServer.getBookieId(), ledgerHandle.getLedgerMetadata()))
                 count++;
         }
+        Assert.assertEquals(ensSize, count);
+        count = 0;
 
+        LedgerManager manager = bookKeeper.getLedgerManager();
+        for (int i = 0; i < bookieServerUtil.getBookieNumer(); i++) {
+            BookieServer bookieServer = bookieServerUtil.getBookie(i);
+            if (BookKeeperAdmin.areEntriesOfLedgerStoredInTheBookie(ledgerHandle.getId(), bookieServer.getBookieId(), manager))
+                count++;
+        }
         Assert.assertEquals(ensSize, count);
     }
 

@@ -7,6 +7,7 @@ import org.apache.bookkeeper.replication.ReplicationException;
 import org.apache.bookkeeper.tls.SecurityException;
 import org.apache.bookkeeper.util.*;
 import org.apache.zookeeper.KeeperException;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -43,7 +44,7 @@ public class LedgerHandleTest {
     public static Collection<Object[]> getTestParameters() {
         return Arrays.asList(new Object[][]{
                 {"".getBytes(), BookKeeper.DigestType.CRC32, 3, 3, 3, 0},
-                {"test".getBytes(), BookKeeper.DigestType.CRC32, 4, 2, 1, 1},
+                {"test".getBytes(), BookKeeper.DigestType.CRC32, 4, 3, 2, 1},
                 {"test".getBytes(), BookKeeper.DigestType.DUMMY, 6, 3, 2, 1},
                 {new byte[] {0x00, 0x08}, BookKeeper.DigestType.MAC, 6, 3, 3, 2},
         });
@@ -104,12 +105,22 @@ public class LedgerHandleTest {
     @Test
     public void addSingleEntryStopBookiesTest() throws BKException, InterruptedException {
         bookieServerUtil.stopBookies(stopBookies);
-        ledgerHandle.addEntry(data);
+        try {
+            ledgerHandle.addEntry(data);
 
-        LedgerEntry fetchedEntry = ledgerHandle.readLastEntry();
-        byte[] fetched = fetchedEntry.getEntry();
+            LedgerEntry fetchedEntry = ledgerHandle.readLastEntry();
+            byte[] fetched = fetchedEntry.getEntry();
 
-        Assert.assertArrayEquals(data, fetched);
+            Assert.assertArrayEquals(data, fetched);
+        } catch (Exception e) {
+
+            if(bookieServerUtil.numberOfAliveBookies() < wQuorum) {
+                Assert.assertTrue(true);
+            } else {
+                Assert.fail();
+            }
+        }
+
     }
 
     private static byte[] convertIntToArray(int i) {
