@@ -110,7 +110,7 @@
     <!-- ADDED -->
     <argLine>-Xmx2G -Djava.net.preferIPv4Stack=true -Dio.netty.leakDetection.level=paranoid </argLine>
     <aggregate.report.dir>tests/target/site/jacoco-aggregate/jacoco.xml</aggregate.report.dir>
-    <sonar.coverage.exclusions>tests/**</sonar.coverage.exclusions>
+
     <sonar.moduleKey>${artifactId}</sonar.moduleKey>
     <sonar.projectKey>ferra-rally_bookkeeper</sonar.projectKey>
     <sonar.organization>ferra-rally</sonar.organization>

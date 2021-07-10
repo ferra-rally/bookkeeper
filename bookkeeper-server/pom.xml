@@ -24,6 +24,13 @@
   </parent>
   <artifactId>bookkeeper-server</artifactId>
   <name>Apache BookKeeper :: Server</name>
+
+  <!-- ADDED -->
+  <!-- ADDED  -->
+  <properties>
+    <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.apache.bookkeeper</groupId>
