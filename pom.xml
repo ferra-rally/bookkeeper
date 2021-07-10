@@ -882,10 +882,24 @@
       <plugin>
         <groupId>org.pitest</groupId>
         <artifactId>pitest-maven</artifactId>
-        <!--
         <configuration>
-          <reportDirectory>tests/target/mutation</reportDirectory>
-        </configuration> -->
+          <!--<reportDirectory>tests/target/mutation</reportDirectory>
+
+          <targetClasses>
+            <param>org.apache.bookkeeper.*</param>
+          </targetClasses>
+          <targetTests>
+            <param>org.apache.bookkeeper.LedgerEntryReadEntries.asyncReadEntriesTest, org.apache.bookkeeper.LedgerEntryReadEntries.addSingleEntryStopBookiesTest,
+              org.apache.bookkeeper.LedgerEntryReadEntries.readEntryWithOffset, org.apache.bookkeeper.BookkeeperAdminInitNewClusterTest.*, org.apache.bookkeeper.BookkeeperAdminTest.*,
+              org.apache.bookkeeper.BookkeeperAdminInitTest.*, org.apache.bookkeeper.LedgerHandleTest.*</param>
+          </targetTests>-->
+          <excludedTests>org.apache.bookkeeper.LedgerEntryReadEntries</excludedTests>
+          <threads>5</threads>
+          <jvmArgs>
+            <value>-Xmx1024m</value>
+          </jvmArgs>
+          <!--<timeoutConst>1000</timeoutConst>-->
+        </configuration>
        </plugin>
 
       <plugin>

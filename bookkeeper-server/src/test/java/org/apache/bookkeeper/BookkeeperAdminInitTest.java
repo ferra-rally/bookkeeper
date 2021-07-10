@@ -1,6 +1,7 @@
 package org.apache.bookkeeper;
 
 import org.apache.bookkeeper.TestBKConfiguration;
+import org.apache.bookkeeper.bookie.BookieException;
 import org.apache.bookkeeper.client.BKException;
 import org.apache.bookkeeper.client.BookKeeper;
 import org.apache.bookkeeper.client.BookKeeperAdmin;
@@ -41,30 +42,33 @@ public class BookkeeperAdminInitTest {
     private BookKeeperAdmin admin;
     private String journalPath;
     private String ledgerPath;
+    private String ledgerBaseRoot;
     private String name;
 
 
     @Parameterized.Parameters
     public static Collection<Object[]> getTestParameters() {
         return Arrays.asList(new Object[][]{
-                {"TEST", "journaltestpath", "ledgertestpath", true},
-                {"TEST", "", "ledger path", true},
-                {"TEST", "journalpath", "", true},
-                {"BOOKIE0", "journalpath", null, false},
-                {"TEST", null, null, true},
+                {"TEST", "ledgers", "journaltestpath", "ledgertestpath", true},
+                {"TEST", "ledgers", "", "ledger path", true},
+                {"TEST", "ledgers", "journalpath", "", true},
+                {"BOOKIE0", "ledgers", "journalpath", null, false},
+                {"TEST", "ledgers", null, null, true},
+                {"TEST", "ledgerswrong", "journaltestpath", "ledgertestpath", true},
         });
     }
 
-    public BookkeeperAdminInitTest(String name, String journalPath, String ledgerPath, boolean expected) {
+    public BookkeeperAdminInitTest(String name, String ledgerBaseRoot, String journalPath, String ledgerPath, boolean expected) {
         this.name = name;
         this.journalPath = journalPath;
+        this.ledgerBaseRoot = ledgerBaseRoot;
         this.ledgerPath = ledgerPath;
         this.expected = expected;
     }
 
     @Before
     public void configure() throws BKException, IOException, InterruptedException, KeeperException {
-        zooKeeperServerUtil = new ZooKeeperServerUtil(21810);
+        zooKeeperServerUtil = new ZooKeeperServerUtil(PortManager.nextFreePort());
 
         bookieServerUtil = new BookieServerUtil(zooKeeperServerUtil);
         bookieServerUtil.startBookies(ensSize);
@@ -95,7 +99,7 @@ public class BookkeeperAdminInitTest {
         int port = PortManager.nextFreePort();
 
         conf.setBookiePort(port);
-        conf.setMetadataServiceUri("zk://127.0.0.1:" + 21810 + "/ledgers");
+        conf.setMetadataServiceUri("zk://127.0.0.1:" + zooKeeperServerUtil.getPort() + "/" + ledgerBaseRoot);
 
         for(int i = 0; i < ledgers.size(); i++) {
             conf.setJournalDirName(jornals.get(i).getAbsolutePath());
@@ -110,16 +114,22 @@ public class BookkeeperAdminInitTest {
         Assert.assertEquals(expected, BookKeeperAdmin.initBookie(conf));
 
         if(expected) {
-            BookieServer server = new BookieServer(conf);
-            server.start();
+            try {
+                BookieServer server = new BookieServer(conf);
+                server.start();
 
-            Collection<BookieId> ids = admin.getAllBookies();
-            List<String> bookies = new ArrayList<>();
-            for (BookieId id : ids) {
-                bookies.add(id.getId());
+                Collection<BookieId> ids = admin.getAllBookies();
+                List<String> bookies = new ArrayList<>();
+                for (BookieId id : ids) {
+                    bookies.add(id.getId());
+                }
+
+                Assert.assertTrue(bookies.contains(name));
+            } catch (BookieException.MetadataStoreException e) {
+                if(ledgerBaseRoot.equals("ledgers")) {
+                   Assert.fail();
+                }
             }
-
-            Assert.assertTrue(bookies.contains(name));
         }
     }
 }

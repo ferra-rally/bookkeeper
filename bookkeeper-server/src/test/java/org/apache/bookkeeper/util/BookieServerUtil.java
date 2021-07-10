@@ -34,10 +34,12 @@ public class BookieServerUtil {
 
     public void startBookies(int num) {
         //Create temp directory for bookie
-        baseConf.setMetadataServiceUri("zk://127.0.0.1:" + 21810 + "/ledgers");
+        System.out.println("PORT: " + zooKeeperServerUtil.getPort());
+        baseConf.setMetadataServiceUri("zk://127.0.0.1:" + zooKeeperServerUtil.getPort() + "/ledgers");
 
         for(int i = 0; i < num; i++) {
             ServerConfiguration conf = new ServerConfiguration(baseConf);
+            conf.setHttpServerEnabled(true);
             conf.setBookieId("BOOKIE" + i);
 
             try {
@@ -125,5 +127,10 @@ public class BookieServerUtil {
 
     public List<File> getLedgerDirArray() {
         return ledgerDirArray;
+    }
+
+    public void stop() {
+        for (int i = 0; i < bookies.size(); i++) bookies.get(i).shutdown();
+        zooKeeperServerUtil.stop();
     }
 }

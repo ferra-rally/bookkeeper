@@ -43,10 +43,10 @@ public class LedgerHandleTest {
     @Parameterized.Parameters
     public static Collection<Object[]> getTestParameters() {
         return Arrays.asList(new Object[][]{
-                {"".getBytes(), BookKeeper.DigestType.CRC32, 3, 3, 3, 0},
-                {"test".getBytes(), BookKeeper.DigestType.CRC32, 4, 3, 2, 1},
-                {"test".getBytes(), BookKeeper.DigestType.DUMMY, 6, 3, 2, 1},
-                {new byte[] {0x00, 0x08}, BookKeeper.DigestType.MAC, 6, 3, 3, 2},
+                {"".getBytes(), BookKeeper.DigestType.CRC32, 3, 3, 3, 1},
+                {"test".getBytes(), BookKeeper.DigestType.CRC32, 3, 3, 2, 1},
+                {"test".getBytes(), BookKeeper.DigestType.DUMMY, 6, 3, 2, 0},
+                {new byte[] {0x00, 0x08}, BookKeeper.DigestType.MAC, 6, 3, 3, 4},
         });
     }
 
@@ -61,7 +61,7 @@ public class LedgerHandleTest {
 
     @Before
     public void config() throws IOException, InterruptedException, KeeperException, BKException {
-        zooKeeperServerUtil = new ZooKeeperServerUtil(21810);
+        zooKeeperServerUtil = new ZooKeeperServerUtil(PortManager.nextFreePort());
 
         bookieServerUtil = new BookieServerUtil(zooKeeperServerUtil);
         bookieServerUtil.startBookies(ensSize);
@@ -70,11 +70,12 @@ public class LedgerHandleTest {
         bookKeeper = new BookKeeper(config, zooKeeperServerUtil.getZooKeeperClient());
 
         ledgerHandle = bookKeeper.createLedger(ensSize,wQuorum, rQuorum, digestType, "A".getBytes(), Collections.emptyMap());
+
     }
 
     @After
     public void cleanup() {
-        zooKeeperServerUtil.stop();
+        bookieServerUtil.stop();
     }
 
     @Test
@@ -108,19 +109,18 @@ public class LedgerHandleTest {
         LedgerEntry fetchedEntry = null;
         try {
             ledgerHandle.addEntry(data);
-
             fetchedEntry = ledgerHandle.readLastEntry();
+            byte[] fetched = fetchedEntry.getEntry();
+            Assert.assertArrayEquals(data, fetched);
         } catch (Exception e) {
             e.printStackTrace();
+            System.out.println("ALIVE: " + bookieServerUtil.numberOfAliveBookies());
             if(bookieServerUtil.numberOfAliveBookies() < wQuorum) {
                 Assert.assertTrue(true);
+                return;
             } else {
                 Assert.fail();
             }
         }
-
-        byte[] fetched = fetchedEntry.getEntry();
-
-        Assert.assertArrayEquals(data, fetched);
     }
 }

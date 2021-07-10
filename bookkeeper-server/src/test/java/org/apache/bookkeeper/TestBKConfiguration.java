@@ -61,6 +61,7 @@ public class TestBKConfiguration {
         confReturn.setAllocatorPoolingPolicy(PoolingPolicy.UnpooledHeap);
         confReturn.setProperty(DbLedgerStorage.WRITE_CACHE_MAX_SIZE_MB, 4);
         confReturn.setProperty(DbLedgerStorage.READ_AHEAD_CACHE_MAX_SIZE_MB, 4);
+        confReturn.setStatisticsEnabled(true);
         //confReturn.setAllowLoopback(true);
         //confReturn.setListeningInterface("localhost");
         //setLoopbackInterfaceAndAllowLoopback(confReturn);

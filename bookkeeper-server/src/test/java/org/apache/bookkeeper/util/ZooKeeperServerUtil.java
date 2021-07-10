@@ -1,5 +1,6 @@
 package org.apache.bookkeeper.util;
 
+import org.apache.bookkeeper.zookeeper.RetryPolicy;
 import org.apache.bookkeeper.zookeeper.ZooKeeperClient;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.server.NIOServerCnxnFactory;
@@ -28,12 +29,14 @@ public class ZooKeeperServerUtil {
         File temp = IOUtils.createTempDir("zookeeper", "temp");
 
         String loopback = InetAddress.getLoopbackAddress().getHostAddress();
+        this.port = port;
         InetSocketAddress zkaddr = new InetSocketAddress(loopback, port);
         address = loopback + ":" + port;
 
         serverFactory = new NIOServerCnxnFactory();
 
         zooKeeperServer = new ZooKeeperServer(temp, temp, ZooKeeperServer.DEFAULT_TICK_TIME);
+        zooKeeperServer.setMaxSessionTimeout(2000);
 
         serverFactory.configure(zkaddr, 1000);
         serverFactory.startup(zooKeeperServer);

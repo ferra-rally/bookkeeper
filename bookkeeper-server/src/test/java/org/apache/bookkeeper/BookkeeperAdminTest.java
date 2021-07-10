@@ -56,7 +56,7 @@ public class BookkeeperAdminTest {
 
     @Before
     public void configure() throws BKException, IOException, InterruptedException, KeeperException {
-        zooKeeperServerUtil = new ZooKeeperServerUtil(21810);
+        zooKeeperServerUtil = new ZooKeeperServerUtil(PortManager.nextFreePort());
 
         bookieServerUtil = new BookieServerUtil(zooKeeperServerUtil);
         bookieServerUtil.startBookies(numOfBookies);
@@ -74,16 +74,11 @@ public class BookkeeperAdminTest {
     }
 
     @Test
-    public void test() {
-
-    }
-
-    @Test
-    public void areEntriesOfLedgerSoredInTheBookieTest() throws UnknownHostException {
+    public void areEntriesOfLedgerSoredInTheBookieTest() throws UnknownHostException, BKException, InterruptedException {
         int count = 0;
         for (int i = 0; i < bookieServerUtil.getBookieNumer(); i++) {
             BookieServer bookieServer = bookieServerUtil.getBookie(i);
-            if (BookKeeperAdmin.areEntriesOfLedgerStoredInTheBookie(ledgerHandle.getId(), bookieServer.getBookieId(), ledgerHandle.getLedgerMetadata()))
+            if (BookKeeperAdmin.areEntriesOfLedgerStoredInTheBookie(ledgerHandle.getId() , bookieServer.getBookieId(), ledgerHandle.getLedgerMetadata()))
                 count++;
         }
         Assert.assertEquals(ensSize, count);
@@ -95,7 +90,43 @@ public class BookkeeperAdminTest {
             if (BookKeeperAdmin.areEntriesOfLedgerStoredInTheBookie(ledgerHandle.getId(), bookieServer.getBookieId(), manager))
                 count++;
         }
+
         Assert.assertEquals(ensSize, count);
+        count = 0;
+        ledgerHandle.close();
+        for (int i = 0; i < bookieServerUtil.getBookieNumer(); i++) {
+            BookieServer bookieServer = bookieServerUtil.getBookie(i);
+            if (BookKeeperAdmin.areEntriesOfLedgerStoredInTheBookie(ledgerHandle.getId(), bookieServer.getBookieId(), manager))
+                count++;
+        }
+
+        //Test closing the ledger
+        Assert.assertEquals(0, count);
+
+        bookKeeper.deleteLedger(ledgerHandle.getId());
+        count = 0;
+        for (int i = 0; i < bookieServerUtil.getBookieNumer(); i++) {
+            BookieServer bookieServer = bookieServerUtil.getBookie(i);
+            if (BookKeeperAdmin.areEntriesOfLedgerStoredInTheBookie(ledgerHandle.getId(), bookieServer.getBookieId(), manager))
+                count++;
+        }
+
+        //Test deleting the ledger
+        Assert.assertEquals(0, count);
+    }
+
+    @Test
+    public void testInexistingLedger() throws UnknownHostException {
+        int count = 0;
+
+        LedgerManager manager = bookKeeper.getLedgerManager();
+        for (int i = 0; i < bookieServerUtil.getBookieNumer(); i++) {
+            BookieServer bookieServer = bookieServerUtil.getBookie(i);
+            if (BookKeeperAdmin.areEntriesOfLedgerStoredInTheBookie(ledgerHandle.getId() + 1, bookieServer.getBookieId(), manager))
+                count++;
+        }
+
+        Assert.assertEquals(0, count);
     }
 
 /*

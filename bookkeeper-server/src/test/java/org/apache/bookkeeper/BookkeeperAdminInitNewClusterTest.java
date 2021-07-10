@@ -56,13 +56,13 @@ public class BookkeeperAdminInitNewClusterTest {
                 {"ledgertest", 3},
                 {"", 3},
                 {null, 3},
-                {"ledgertest", 6}
+                {"ledgertest", 6},
         });
     }
 
     @Before
     public void configure() throws IOException, InterruptedException, KeeperException, BKException {
-        zooKeeperServerUtil = new ZooKeeperServerUtil(21810);
+        zooKeeperServerUtil = new ZooKeeperServerUtil(PortManager.nextFreePort());
 
         zkc = zooKeeperServerUtil.getZooKeeperClient();
         bookieServerUtil = new BookieServerUtil(zooKeeperServerUtil);
@@ -81,7 +81,7 @@ public class BookkeeperAdminInitNewClusterTest {
     @Test
     public void initNewClusterTest() throws Exception {
         String ledgerRootPath = "/" + ledgerRoot;
-        baseConf.setMetadataServiceUri("zk://127.0.0.1:" + 21810 + ledgerRootPath);
+        baseConf.setMetadataServiceUri("zk://127.0.0.1:" + zooKeeperServerUtil.getPort() + ledgerRootPath);
         ServerConfiguration config = new ServerConfiguration(baseConf);
 
         Transaction txn = zkc.transaction();
